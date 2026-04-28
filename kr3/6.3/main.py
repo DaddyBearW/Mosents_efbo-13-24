@@ -46,6 +46,10 @@ def ping() -> dict[str, str]:
     return {"message": "pong", "mode": MODE}
 
 
+def docs_not_available() -> None:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not Found")
+
+
 if MODE == "DEV":
     @app.get("/openapi.json", include_in_schema=False)
     def openapi_json(_: str = Depends(check_docs_auth)) -> JSONResponse:
@@ -55,3 +59,22 @@ if MODE == "DEV":
     @app.get("/docs", include_in_schema=False)
     def custom_swagger(_: str = Depends(check_docs_auth)):
         return get_swagger_ui_html(openapi_url="/openapi.json", title=app.title + " Docs")
+
+
+    @app.get("/redoc", include_in_schema=False)
+    def redoc_disabled() -> None:
+        docs_not_available()
+else:
+    @app.get("/docs", include_in_schema=False)
+    def prod_docs_disabled() -> None:
+        docs_not_available()
+
+
+    @app.get("/openapi.json", include_in_schema=False)
+    def prod_openapi_disabled() -> None:
+        docs_not_available()
+
+
+    @app.get("/redoc", include_in_schema=False)
+    def prod_redoc_disabled() -> None:
+        docs_not_available()
